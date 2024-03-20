@@ -1,0 +1,39 @@
+version: "3.6"
+
+networks:
+    pyeditorial-network:
+      driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+    driver_opts:
+            device: ~/database
+            o: bind
+            type: none
+
+services:
+  db:
+    image: postgres
+    container_name: postgres
+    hostname: db
+    restart: always
+    env_file:
+      - general.env
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - pyeditorial-network
+
+  web:
+    build: ./PyEditorial/
+    volumes:
+      - ./:/code
+    ports:
+      - "80:8000"
+    networks:
+      - pyeditorial-network
+    depends_on:
+      - db

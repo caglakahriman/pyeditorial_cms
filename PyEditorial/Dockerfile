@@ -1,13 +1,10 @@
 FROM python:3.9
 
-WORKDIR /app
-COPY . .
 
-# install requirements
+WORKDIR /app
+COPY . /app/
+
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# migrations
-RUN python manage.py makemigrations
-RUN python manage.py migrate
-# static
-RUN python manage.py collectstatic --noinput
+CMD chmod +x /app/init.sh && bash /app/init.sh

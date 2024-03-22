@@ -4,37 +4,33 @@
 sudo apt update
 
 # Install prerequisites
-
 sudo apt install -y \
   git
 
-# Install Docker
+# Install Docker and dependencies
 # Add Docker's official GPG key:
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudo apt-get install -y ca-certificates curl
 
 # Add the repository to Apt sources:
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --batch --keyring /etc/apt/keyrings/docker.asc --dearmor > /etc/apt/keyrings/docker.asc
+
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
 sudo apt-get update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Add user to Docker group for Docker without sudo
 sudo usermod -aG docker $USER
 
-# Inform user to log out and back in for group changes to take effect
-echo "** Please log out and log back in for Docker group changes to take effect. **"
 
-#clone from git here
-git clone https://github.com/caglakahriman/pyeditorial_cms.git
-
-# Let's assume your Dockerfile (containing Nginx configuration) is named Dockerfile_nginx
+git clone https://github.com/caglakahriman/pyeditorial_cms.git pyeditorial_cms
 cd pyeditorial_cms
+mkdir -p pgdata
 
 docker compose up -d
+
+echo "** Docker setup complete. PyEditorial project is running in detached mode. **"

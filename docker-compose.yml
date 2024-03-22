@@ -1,14 +1,23 @@
 version: "3.6"
 
 networks:
-    pyeditorial-network:
-      driver: bridge
+  pyeditorial-network:
+    driver: bridge
+    name: pyeditorial-network
 
 volumes:
-  pgdata:
+  static:
+    name: static
     driver: local
     driver_opts:
-            device: ~/database
+            device: ./PyEditorial/templates
+            o: bind
+            type: none
+  pgdata:
+    name: pgdata
+    driver: local
+    driver_opts:
+            device: ./pgdata
             o: bind
             type: none
 
@@ -21,19 +30,37 @@ services:
     env_file:
       - general.env
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - pgdata:/var/lib/postgresql/data
     networks:
       - pyeditorial-network
 
-  web:
+  app:
     build: ./PyEditorial/
+    container_name: app
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "PyEditorial.wsgi:application"]
     volumes:
       - ./:/code
+      - static:/app/templates
     ports:
-      - "80:8000"
+      - "5001:8000"
+    networks:
+      - pyeditorial-network
+    restart: "always"
+    depends_on:
+      - db
+  
+  nginx:
+    build: ./PyEditorial/nginx
+    container_name: nginx
+    env_file:
+      - general.env
+    ports:
+      - "1337:80"
+      - "443:443"
+    volumes:
+      - static:/app/templates
     networks:
       - pyeditorial-network
     depends_on:
-      - db
+      - app
+
